@@ -54,36 +54,67 @@
 	var ReactDOMRe  = __webpack_require__(53);
 	var ReasonReact = __webpack_require__(201);
 
-	var component = ReasonReact.reducerComponent("Button");
+	var component = ReasonReact.reducerComponentWithRetainedProps("Button");
 
 	function make(count, onChange, _) {
 	  var handleClick = function () {
-	    console.log(count);
 	    return Curry._1(onChange, count + 1 | 0);
 	  };
-	  var newrecord = component.slice();
-	  newrecord[/* didMount */4] = (function (self) {
-	      var match = self[/* state */4][/* element */0][0];
-	      if (match) {
-	        match[0].addEventListener("click", handleClick);
+	  var updateEventListener = function (state) {
+	    var match = state[/* element */0][0];
+	    if (match) {
+	      var element = match[0];
+	      var match$1 = state[/* clickHandler */1][0];
+	      if (match$1) {
+	        element.removeEventListener("click", match$1[0]);
 	      }
-	      return /* NoUpdate */0;
-	    });
-	  newrecord[/* render */9] = (function (self) {
-	      return React.createElement("div", {
-	                  ref: Curry._1(self[/* handle */0], (function (el, param) {
-	                          param[/* state */4][/* element */0][0] = el === null ? /* None */0 : [el];
-	                          return /* () */0;
-	                        }))
-	                }, "Click to increment count");
-	    });
-	  newrecord[/* initialState */10] = (function () {
-	      return /* record */[/* element */[/* None */0]];
-	    });
-	  newrecord[/* reducer */12] = (function (_, _$1) {
-	      return /* NoUpdate */0;
-	    });
-	  return newrecord;
+	      state[/* clickHandler */1][0] = /* Some */[handleClick];
+	      return element.addEventListener("click", handleClick);
+	    } else {
+	      return /* () */0;
+	    }
+	  };
+	  return /* record */[
+	          /* debugName */component[/* debugName */0],
+	          /* reactClassInternal */component[/* reactClassInternal */1],
+	          /* handedOffState */component[/* handedOffState */2],
+	          /* willReceiveProps */component[/* willReceiveProps */3],
+	          /* didMount */(function (self) {
+	              updateEventListener(self[/* state */4]);
+	              return /* NoUpdate */0;
+	            }),
+	          /* didUpdate */(function (param) {
+	              var newSelf = param[/* newSelf */1];
+	              var oldSelf = param[/* oldSelf */0];
+	              if (oldSelf[/* retainedProps */5] !== newSelf[/* retainedProps */5] || oldSelf[/* state */4][/* element */0] !== newSelf[/* state */4][/* element */0]) {
+	                return updateEventListener(newSelf[/* state */4]);
+	              } else {
+	                return 0;
+	              }
+	            }),
+	          /* willUnmount */component[/* willUnmount */6],
+	          /* willUpdate */component[/* willUpdate */7],
+	          /* shouldUpdate */component[/* shouldUpdate */8],
+	          /* render */(function (self) {
+	              return React.createElement("button", {
+	                          ref: Curry._1(self[/* handle */0], (function (el, param) {
+	                                  param[/* state */4][/* element */0][0] = el === null ? /* None */0 : [el];
+	                                  return /* () */0;
+	                                }))
+	                        }, "Click to increment count: " + (String(count) + ""));
+	            }),
+	          /* initialState */(function () {
+	              return /* record */[
+	                      /* element */[/* None */0],
+	                      /* clickHandler */[/* None */0]
+	                    ];
+	            }),
+	          /* retainedProps */onChange,
+	          /* reducer */(function (_, _$1) {
+	              return /* NoUpdate */0;
+	            }),
+	          /* jsElementWrapped */component[/* jsElementWrapped */13]
+	        ];
 	}
 
 	var Button = /* module */[
@@ -103,7 +134,7 @@
 	  newrecord[/* initialState */10] = (function () {
 	      return 0;
 	    });
-	  newrecord[/* reducer */12] = (function (_, newCount) {
+	  newrecord[/* reducer */12] = (function (newCount, _) {
 	      return /* Update */Block.__(0, [newCount]);
 	    });
 	  return newrecord;

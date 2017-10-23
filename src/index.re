@@ -4,37 +4,51 @@ external window : Js.t {..} = "" [@@bs.val];
 
 module Button = {
   type state = {
-    element: ref (option Dom.element)
+    element: ref (option Dom.element),
+    clickHandler: ref (option (unit => unit))
   };
 
-  let component = ReasonReact.reducerComponent "Button";
+  let component = ReasonReact.reducerComponentWithRetainedProps "Button";
   let make ::count ::onChange _children => {
 
-    let handleClick _ => {
-      Js.log count;
-      onChange (count + 1)
-    };
+    let handleClick () =>
+      onChange (count + 1);
+
+    let updateEventListener state =>
+      switch !state.element {
+      | Some element =>
+        switch !state.clickHandler {
+        | Some oldHandler => 
+          (ReactDOMRe.domElementToObj element)##removeEventListener "click" oldHandler
+        | None => ()
+        };
+        state.clickHandler := Some handleClick;
+        (ReactDOMRe.domElementToObj element)##addEventListener "click" handleClick
+      | None => ()
+      };
 
     {
       ...component,
 
-      initialState: fun () => { element: ref None },
-
+      retainedProps: onChange,
+      initialState: fun () => { element: ref None, clickHandler: ref None },
       reducer: fun () _state => ReasonReact.NoUpdate,
 
       didMount: fun self => {
-        switch !self.state.element {
-        | Some element =>
-          (ReactDOMRe.domElementToObj element)##addEventListener "click" handleClick;
-        | None => ()
-        };
+        updateEventListener self.state;
         ReasonReact.NoUpdate
       },
 
+      didUpdate: fun {oldSelf, newSelf} =>
+        if (oldSelf.retainedProps !== newSelf.retainedProps ||
+            oldSelf.state.element !== newSelf.state.element) {
+          updateEventListener newSelf.state
+        },
+
       render: fun self =>
-        <div ref=(self.handle (fun el {state} => state.element := Js.Null.to_opt el)) >
-          (ReasonReact.stringToElement "Click to increment count")
-        </div>
+        <button ref=(self.handle (fun el {state} => state.element := Js.Null.to_opt el)) >
+          (ReasonReact.stringToElement {j|Click to increment count: $count|j})
+        </button>
     }
   };
 };
@@ -46,7 +60,7 @@ module App = {
 
     initialState: fun () => 0,
 
-    reducer: fun _ newCount => ReasonReact.Update newCount,
+    reducer: fun newCount _ => ReasonReact.Update newCount,
 
     render: fun self =>
       <div>
